@@ -271,10 +271,23 @@
       border-radius: 999px;
       margin: 4px auto 14px;
     }
+    .drawer-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.7rem;
+      line-height: 1;
+      cursor: pointer;
+    }
     .drawer h3 {
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
-      margin: 0 0 12px;
+      margin: 0 40px 12px 0;
       font-size: 1.15rem;
     }
     .drawer p.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
@@ -519,9 +532,10 @@
 
     function openDrawer(html) {
       const drawer = document.getElementById("drawer");
-      drawer.innerHTML = '<div class="handle"></div>' + html;
+      drawer.innerHTML = '<div class="handle"></div><button type="button" class="drawer-close" id="drawer-close" aria-label="Fermer">×</button>' + html;
       drawer.classList.add("on");
       document.getElementById("backdrop").classList.add("on");
+      document.getElementById("drawer-close").addEventListener("click", closeDrawer);
     }
 
     function closeDrawer() {
