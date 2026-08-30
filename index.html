@@ -31,13 +31,14 @@
     }
     .sun {
       position: absolute;
-      top: 0;
-      right: 0;
-      height: 100%;
+      top: 50%;
+      right: 12px;
+      height: 72%;
       aspect-ratio: 1;
       background: #BC002D;
       border-radius: 50%;
       pointer-events: none;
+      transform: translateY(-50%);
     }
 
     .wrap {
@@ -113,7 +114,7 @@
     }
 
     .day {
-      background-color: #F8DDE0;
+      background-color: #ffffff;
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 12px 14px 10px;
