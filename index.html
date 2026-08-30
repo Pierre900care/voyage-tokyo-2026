@@ -142,18 +142,22 @@
     .chips { display: flex; flex-direction: column; gap: 6px; min-height: 28px; }
     .chip {
       appearance: none;
-      border: 0;
+      border: 1.5px solid var(--accent);
       text-align: left;
       width: 100%;
       padding: 7px 10px;
       border-radius: 9px;
-      background: #FFF0F1;
-      color: var(--ink);
+      background: #fff;
+      color: var(--accent);
       font: inherit;
       font-size: 0.88rem;
       cursor: pointer;
     }
-    .chip.vol { background: var(--vol-soft); color: var(--vol); }
+    .chip.vol {
+      background: #fff;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
     .chip:active { transform: scale(0.99); }
     .empty {
       color: var(--muted);
@@ -259,7 +263,7 @@
     }
     .btn.primary { background: var(--accent); color: #fff; }
     .btn.ghost { background: transparent; color: var(--muted); }
-    .btn.danger { background: #F4D6D6; color: var(--danger); }
+    .btn.danger { background: #F4D6D6; color: var(--danger); margin-top: 8px; }
 
     .pick-day { margin-bottom: 10px; }
     .pick-day .name { font-size: 0.85rem; margin-bottom: 6px; color: var(--muted); }
@@ -492,6 +496,7 @@
         <h3>${escapeHtml(act.title)}</h3>
         <p class="hint">Choisis un créneau (2 activités max par case).</p>
         ${rows}
+        <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
 
       document.querySelectorAll("[data-slot]").forEach((btn) => {
@@ -501,6 +506,12 @@
           render();
           saveRemote();
         });
+      });
+      document.getElementById("delete").addEventListener("click", () => {
+        activities = activities.filter((a) => a.id !== id);
+        closeDrawer();
+        render();
+        saveRemote();
       });
       document.getElementById("cancel").addEventListener("click", closeDrawer);
     }
