@@ -29,18 +29,17 @@
       padding: 0 16px 48px;
       padding-bottom: max(48px, env(safe-area-inset-bottom));
     }
-    body::before {
-      content: "";
+    .sun {
       position: fixed;
-      top: -90px;
-      right: -70px;
-      width: 240px;
-      height: 240px;
+      top: -70px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
       background: #BC002D;
       border-radius: 50%;
-      opacity: 0.1;
+      opacity: 0.22;
       pointer-events: none;
-      z-index: 0;
+      z-index: 5;
     }
 
     .wrap { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
@@ -49,7 +48,7 @@
       padding: 28px 0 8px;
       position: sticky;
       top: 0;
-      background: var(--bg);
+      background: transparent;
       z-index: 2;
     }
     .brand {
@@ -269,25 +268,36 @@
       height: 4px;
       background: var(--line);
       border-radius: 999px;
-      margin: 4px auto 14px;
+      margin: 4px auto 0;
+    }
+    .drawer-top {
+      position: sticky;
+      top: 0;
+      display: flex;
+      justify-content: flex-end;
+      background: var(--card);
+      z-index: 2;
+      margin: 0 -16px 8px;
+      padding: 4px 10px 8px;
     }
     .drawer-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 36px;
+      height: 36px;
       border: 0;
-      background: transparent;
-      color: var(--muted);
-      font-size: 1.7rem;
-      line-height: 1;
+      border-radius: 50%;
+      background: #F8DDE0;
+      color: #BC002D;
+      font-size: 1.5rem;
+      line-height: 36px;
+      padding: 0;
       cursor: pointer;
     }
     .drawer h3 {
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
-      margin: 0 40px 12px 0;
+      margin: 0 0 12px;
       font-size: 1.15rem;
     }
     .drawer p.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
@@ -338,6 +348,7 @@
   </style>
 </head>
 <body>
+  <div class="sun" aria-hidden="true"></div>
   <div class="wrap">
     <header>
       <div class="brand">
@@ -532,7 +543,7 @@
 
     function openDrawer(html) {
       const drawer = document.getElementById("drawer");
-      drawer.innerHTML = '<div class="handle"></div><button type="button" class="drawer-close" id="drawer-close" aria-label="Fermer">×</button>' + html;
+      drawer.innerHTML = '<div class="handle"></div><div class="drawer-top"><button type="button" class="drawer-close" id="drawer-close" aria-label="Fermer">×</button></div>' + html;
       drawer.classList.add("on");
       document.getElementById("backdrop").classList.add("on");
       document.getElementById("drawer-close").addEventListener("click", closeDrawer);
