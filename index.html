@@ -200,6 +200,8 @@
     .act-list { display: flex; flex-direction: column; gap: 8px; }
     .act {
       appearance: none;
+      display: block;
+      width: 100%;
       border: 0;
       background: #E0EEFC;
       color: var(--ink);
@@ -223,11 +225,16 @@
       color: var(--accent);
       margin: -6px 0 14px;
     }
-    .cat-block { margin-bottom: 18px; }
+    .cat-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
     .cat-block h3 {
       font-size: 0.88rem;
       font-weight: 650;
-      margin: 0 0 8px;
+      margin: 0;
       color: var(--ink);
     }
     .cat-block h3 span {
