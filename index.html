@@ -197,6 +197,48 @@
       cursor: pointer;
     }
     .act:active { background: #FFF0F1; }
+    .act-note {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .jst {
+      font-size: 0.82rem;
+      color: var(--accent);
+      margin: -6px 0 14px;
+    }
+    .cat-block { margin-bottom: 18px; }
+    .cat-block h3 {
+      font-size: 0.88rem;
+      font-weight: 650;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+    .cat-block h3 span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .cat-pick {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #fff;
+      font-size: 0.9rem;
+    }
+    .cat-pick:has(:checked) {
+      border-color: var(--accent);
+      background: #FFF5F6;
+    }
+    .cat-pick input { accent-color: var(--accent); margin-top: 3px; }
 
     .backdrop {
       display: none;
@@ -300,6 +342,7 @@
       <h2>Activités</h2>
       <button type="button" id="add-btn" aria-label="Ajouter une activité">+</button>
     </div>
+    <p class="jst">Les sites de résa sont à l’heure japonaise (JST).</p>
     <div id="activities" class="act-list"></div>
   </div>
 
@@ -315,6 +358,14 @@
     for (let d = 7; d <= 22; d++) DAYS.push(`2026-11-${String(d).padStart(2, "0")}`);
 
     const TRAVEL = new Set(["2026-11-07", "2026-11-08", "2026-11-22"]);
+
+    const CATEGORIES = [
+      { id: "urgence", emoji: "🚨", label: "Urgence maximale", hint: "À booker le jour J" },
+      { id: "resa", emoji: "📅", label: "1 à 3 mois avant", hint: "À réserver assez tôt" },
+      { id: "gastro", emoji: "🍜", label: "Gastronomie & culture", hint: "Sur le long terme" },
+      { id: "events", emoji: "✨", label: "Événements de novembre", hint: "" },
+      { id: "gratuit", emoji: "🏃", label: "Spots gratuits", hint: "Lever aux aurores" },
+    ];
 
     const dayFmt = new Intl.DateTimeFormat("fr-FR", {
       weekday: "short",
@@ -401,9 +452,16 @@
         box.innerHTML = '<p class="empty">Aucune proposition. Appuie sur + pour en ajouter une.</p>';
         return;
       }
-      box.innerHTML = list.map((a) =>
-        `<button type="button" class="act" data-assign="${a.id}">${escapeHtml(a.title)}</button>`
-      ).join("");
+      box.innerHTML = CATEGORIES.map((cat) => {
+        const items = list.filter((a) => a.category === cat.id);
+        if (!items.length) return "";
+        const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
+        const cards = items.map((a) => {
+          const note = a.note ? `<span class="act-note">${escapeHtml(a.note)}</span>` : "";
+          return `<button type="button" class="act" data-assign="${a.id}"><strong>${escapeHtml(a.title)}</strong>${note}</button>`;
+        }).join("");
+        return `<section class="cat-block"><h3>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h3>${cards}</section>`;
+      }).join("");
       box.querySelectorAll("[data-assign]").forEach((btn) => {
         btn.addEventListener("click", () => openAssign(btn.dataset.assign));
       });
@@ -447,10 +505,17 @@
     }
 
     function openAdd() {
+      const cats = CATEGORIES.map((c, i) => `
+        <label class="cat-pick">
+          <input type="radio" name="category" value="${c.id}" ${i === 0 ? "checked" : ""} required />
+          <span>${c.emoji} ${escapeHtml(c.label)}${c.hint ? ` · ${escapeHtml(c.hint)}` : ""}</span>
+        </label>`).join("");
       openDrawer(`
         <h3>Nouvelle activité</h3>
         <form id="add-form">
-          <input type="text" name="title" placeholder="Ex. Temple Sensō-ji" maxlength="80" required />
+          <input type="text" name="title" placeholder="Ex. Temple Sensō-ji" maxlength="120" required />
+          <p class="hint">Dans quelle catégorie ?</p>
+          ${cats}
           <button class="btn primary" type="submit">Ajouter à la liste</button>
           <button class="btn ghost" type="button" id="cancel">Annuler</button>
         </form>`);
@@ -459,8 +524,9 @@
       document.getElementById("add-form").addEventListener("submit", (e) => {
         e.preventDefault();
         const title = input.value.trim();
-        if (!title) return;
-        activities.push({ id: uid(), title, slot: null, locked: false });
+        const category = (new FormData(e.target)).get("category");
+        if (!title || !category) return;
+        activities.push({ id: uid(), title, note: "", category, slot: null, locked: false });
         closeDrawer();
         render();
         saveRemote();
@@ -489,8 +555,10 @@
           </div>`;
       }).join("");
 
+      const note = act.note ? `<p class="hint">${escapeHtml(act.note)}</p>` : "";
       openDrawer(`
         <h3>${escapeHtml(act.title)}</h3>
+        ${note}
         <p class="hint">Choisis un créneau (2 activités max par case).</p>
         ${rows}
         <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>
