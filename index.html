@@ -7,7 +7,7 @@
   <title>Japon · novembre 2026</title>
   <style>
     :root {
-      --bg: #E8D4D2;
+      --bg: #0CA2EE;
       --ink: #1C1214;
       --muted: #7A5A5C;
       --card: #FFFFFF;
@@ -37,6 +37,7 @@
       aspect-ratio: 1;
       background: #BC002D;
       border-radius: 50%;
+      opacity: 1;
       pointer-events: none;
       transform: translateY(-50%);
     }
@@ -86,6 +87,7 @@
       height: 12px;
       background: #BC002D;
       border-radius: 50%;
+      opacity: 1;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -157,10 +159,10 @@
       width: 100%;
       margin: 0;
       padding: 7px 10px;
-      border: 2px solid #BC002D;
+      border: 0;
       border-radius: 9px;
-      background: #ffffff;
-      color: #BC002D;
+      background: #9477AC;
+      color: #ffffff;
       font: inherit;
       font-size: 0.88rem;
       text-align: left;
@@ -198,8 +200,9 @@
     .act-list { display: flex; flex-direction: column; gap: 8px; }
     .act {
       appearance: none;
-      border: 1px solid var(--line);
-      background: var(--card);
+      border: 0;
+      background: #9477AC;
+      color: #ffffff;
       border-radius: 12px;
       padding: 12px 14px;
       text-align: left;
@@ -207,12 +210,12 @@
       font-size: 0.95rem;
       cursor: pointer;
     }
-    .act:active { background: #FFF0F1; }
+    .act:active { background: #7E6294; }
     .act-note {
       display: block;
       margin-top: 4px;
       font-size: 0.8rem;
-      color: var(--muted);
+      color: rgba(255, 255, 255, 0.85);
       font-weight: 400;
     }
     .jst {
