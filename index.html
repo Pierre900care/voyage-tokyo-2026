@@ -374,10 +374,32 @@
     });
 
     let activities = [];
-    let saving = false;
+    let rev = 0;
+    let chain = Promise.resolve();
 
     function uid() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function enqueue(fn) {
+      const run = chain.then(fn, fn);
+      chain = run.catch(() => {});
+      return run;
+    }
+
+    async function fetchJson(opts, tries) {
+      let last;
+      for (let i = 0; i < (tries || 3); i++) {
+        try {
+          const res = await fetch(API, opts);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return await res.json();
+        } catch (err) {
+          last = err;
+          await new Promise((r) => setTimeout(r, 350 * (i + 1)));
+        }
+      }
+      throw last;
     }
 
     function inSlot(date, part) {
@@ -396,34 +418,43 @@
     }
 
     async function loadRemote() {
-      const res = await fetch(API);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
+      const started = rev;
+      const data = await fetchJson();
       if (!Array.isArray(data.activities)) throw new Error("Réponse invalide");
+      if (started !== rev) return;
       activities = data.activities;
       persistLocal();
     }
 
-    async function saveRemote() {
-      saving = true;
+    function touch() {
+      rev += 1;
+      persistLocal();
+      render();
+      saveRemote();
+    }
+
+    function saveRemote() {
+      const started = rev;
       setSync("Enregistrement…");
-      try {
-        const res = await fetch(API, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ activities }),
-        });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        if (Array.isArray(data.activities)) activities = data.activities;
-        persistLocal();
-        setSync("Enregistré · visible par tout le monde");
-      } catch (e) {
-        persistLocal();
-        setSync("Pas de réseau — gardé sur cet appareil", true);
-      } finally {
-        saving = false;
-      }
+      return enqueue(async () => {
+        if (started !== rev) return;
+        const snapshot = activities;
+        try {
+          const data = await fetchJson({
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ activities: snapshot }),
+          });
+          if (started !== rev) return;
+          if (Array.isArray(data.activities)) {
+            activities = data.activities;
+            persistLocal();
+          }
+          setSync("Enregistré · visible par tout le monde");
+        } catch (_e) {
+          setSync("Pas de réseau — nouvel essai au prochain geste", true);
+        }
+      });
     }
 
     function render() {
@@ -442,10 +473,6 @@
           </article>`;
       }).join("");
 
-      planning.querySelectorAll("[data-open]").forEach((btn) => {
-        btn.addEventListener("click", () => openPlaced(btn.dataset.open));
-      });
-
       const list = activities.filter((a) => !a.slot);
       const box = document.getElementById("activities");
       if (!list.length) {
@@ -462,9 +489,6 @@
         }).join("");
         return `<section class="cat-block"><h3>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h3>${cards}</section>`;
       }).join("");
-      box.querySelectorAll("[data-assign]").forEach((btn) => {
-        btn.addEventListener("click", () => openAssign(btn.dataset.assign));
-      });
     }
 
     function renderSlot(date, part, label) {
@@ -528,8 +552,7 @@
         if (!title || !category) return;
         activities.push({ id: uid(), title, note: "", category, slot: null, locked: false });
         closeDrawer();
-        render();
-        saveRemote();
+        touch();
       });
       document.getElementById("cancel").addEventListener("click", closeDrawer);
     }
@@ -568,15 +591,13 @@
         btn.addEventListener("click", () => {
           act.slot = btn.dataset.slot;
           closeDrawer();
-          render();
-          saveRemote();
+          touch();
         });
       });
       document.getElementById("delete").addEventListener("click", () => {
         activities = activities.filter((a) => a.id !== id);
         closeDrawer();
-        render();
-        saveRemote();
+        touch();
       });
       document.getElementById("cancel").addEventListener("click", closeDrawer);
     }
@@ -600,14 +621,21 @@
       document.getElementById("remove").addEventListener("click", () => {
         act.slot = null;
         closeDrawer();
-        render();
-        saveRemote();
+        touch();
       });
       document.getElementById("cancel").addEventListener("click", closeDrawer);
     }
 
     document.getElementById("add-btn").addEventListener("click", openAdd);
     document.getElementById("backdrop").addEventListener("click", closeDrawer);
+    document.getElementById("planning").addEventListener("click", (e) => {
+      const el = e.target.closest("[data-open]");
+      if (el) openPlaced(el.dataset.open);
+    });
+    document.getElementById("activities").addEventListener("click", (e) => {
+      const el = e.target.closest("[data-assign]");
+      if (el) openAssign(el.dataset.assign);
+    });
 
     async function boot() {
       const cached = localStorage.getItem(CACHE_KEY);
@@ -626,15 +654,15 @@
     }
 
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && !saving) {
-        loadRemote().then(() => { render(); setSync("À jour"); }).catch(() => {});
-      }
+      if (document.visibilityState !== "visible") return;
+      enqueue(async () => {
+        try {
+          await loadRemote();
+          render();
+          setSync("À jour");
+        } catch (_e) {}
+      });
     });
-
-    setInterval(() => {
-      if (document.visibilityState !== "visible" || saving) return;
-      loadRemote().then(render).catch(() => {});
-    }, 12000);
 
     boot();
   </script>
