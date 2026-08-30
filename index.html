@@ -140,20 +140,19 @@
       padding-top: 5px;
     }
     .chips { display: flex; flex-direction: column; gap: 6px; min-height: 28px; }
-    .chip,
-    .chip.vol {
-      -webkit-appearance: none;
-      appearance: none;
-      border: 1.5px solid var(--accent);
-      text-align: left;
+    .chip {
+      display: block;
+      box-sizing: border-box;
       width: 100%;
+      margin: 0;
       padding: 7px 10px;
+      border: 2px solid #BC002D;
       border-radius: 9px;
-      background-color: #ffffff !important;
-      background-image: none;
-      color: var(--accent);
+      background: #ffffff;
+      color: #BC002D;
       font: inherit;
       font-size: 0.88rem;
+      text-align: left;
       cursor: pointer;
     }
     .chip:active { transform: scale(0.99); }
@@ -417,7 +416,7 @@
         inner = '<div class="empty">Libre</div>';
       } else {
         inner = items.map((a) =>
-          `<button type="button" class="chip ${a.locked ? "vol" : ""}" data-open="${a.id}">${escapeHtml(a.title)}</button>`
+          `<span class="chip" role="button" tabindex="0" data-open="${a.id}">${escapeHtml(a.title)}</span>`
         ).join("");
       }
       return `
