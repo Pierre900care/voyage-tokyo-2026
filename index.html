@@ -103,7 +103,7 @@
     }
 
     .day {
-      background: var(--card);
+      background-color: #FFF1F0;
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 12px 14px 10px;
@@ -140,23 +140,20 @@
       padding-top: 5px;
     }
     .chips { display: flex; flex-direction: column; gap: 6px; min-height: 28px; }
-    .chip {
+    .chip,
+    .chip.vol {
+      -webkit-appearance: none;
       appearance: none;
       border: 1.5px solid var(--accent);
       text-align: left;
       width: 100%;
       padding: 7px 10px;
       border-radius: 9px;
-      background: #fff;
+      background-color: #ffffff;
       color: var(--accent);
       font: inherit;
       font-size: 0.88rem;
       cursor: pointer;
-    }
-    .chip.vol {
-      background: #fff;
-      color: var(--accent);
-      border-color: var(--accent);
     }
     .chip:active { transform: scale(0.99); }
     .empty {
