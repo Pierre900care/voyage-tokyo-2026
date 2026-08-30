@@ -7,7 +7,7 @@
   <title>Japon · novembre 2026</title>
   <style>
     :root {
-      --bg: #FFF6F4;
+      --bg: #E8D4D2;
       --ink: #1C1214;
       --muted: #7A5A5C;
       --card: #FFFFFF;
@@ -30,16 +30,15 @@
       padding-bottom: max(48px, env(safe-area-inset-bottom));
     }
     .sun {
-      position: fixed;
-      top: -70px;
-      right: -50px;
-      width: 220px;
-      height: 220px;
+      position: absolute;
+      top: 0;
+      right: -24px;
+      height: 100%;
+      aspect-ratio: 1;
       background: #BC002D;
       border-radius: 50%;
       opacity: 0.22;
       pointer-events: none;
-      z-index: 5;
     }
 
     .wrap { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
@@ -49,6 +48,7 @@
       position: sticky;
       top: 0;
       background: #ffffff;
+      overflow: hidden;
       z-index: 2;
     }
     .brand {
@@ -348,9 +348,9 @@
   </style>
 </head>
 <body>
-  <div class="sun" aria-hidden="true"></div>
   <div class="wrap">
     <header>
+      <div class="sun" aria-hidden="true"></div>
       <div class="brand">
         <span class="flag" role="img" aria-label="Drapeau du Japon"></span>
         <h1>Japon</h1>
