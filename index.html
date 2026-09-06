@@ -367,6 +367,43 @@
       cursor: not-allowed;
     }
     .pick b { display: block; font-size: 0.88rem; margin-bottom: 2px; }
+
+    .docs { margin: 0 0 14px; }
+    .doc-list {
+      list-style: none;
+      margin: 0 0 10px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .doc-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F7F1F2;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .doc-list a {
+      flex: 1;
+      color: var(--accent);
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+    .doc-x {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.3rem;
+      line-height: 1;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+    .doc-add { display: block; text-align: center; cursor: pointer; }
+    .doc-add input { display: none; }
+    .doc-add[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -396,10 +433,18 @@
   <div class="backdrop" id="backdrop"></div>
   <div class="drawer" id="drawer" role="dialog" aria-modal="true"></div>
 
-  <script>
-    const API = "https://n8n-hosted-u54587.vm.elestio.app/webhook/voyage-tokyo-26-k7m2";
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const SUPABASE_URL = "https://lvisxqcwjblrmuxrnhfg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_lb5tHPwcfbs2_nRVR93Lrw_Raonh8rK";
+    const TRIP_ID = "tokyo-2026";
+    const DOCS_BUCKET = "docs";
+    const MAX_DOC_BYTES = 10 * 1024 * 1024;
     const CACHE_KEY = "voyage-tokyo-2026";
     const MAX = 2;
+
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DAYS = [];
     for (let d = 7; d <= 22; d++) DAYS.push(`2026-11-${String(d).padStart(2, "0")}`);
@@ -435,13 +480,32 @@
       return run;
     }
 
-    async function fetchJson(opts, tries) {
+    function normalize(list) {
+      if (!Array.isArray(list)) return [];
+      return list.map((a) => ({
+        ...a,
+        docs: Array.isArray(a.docs) ? a.docs : [],
+      }));
+    }
+
+    function safeFileName(name) {
+      const cleaned = String(name || "doc").replace(/[^\w.\-]+/g, "_").replace(/^\.+/, "");
+      return cleaned.slice(0, 80) || "doc";
+    }
+
+    function isAllowedDoc(file) {
+      if (file.size > MAX_DOC_BYTES) return "Fichier trop lourd (10 Mo max).";
+      const okType = /^(application\/pdf|image\/(jpeg|png|webp|heic|heif))$/i.test(file.type);
+      const okExt = /\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(file.name);
+      if (!okType && !okExt) return "PDF ou image uniquement.";
+      return "";
+    }
+
+    async function withRetry(fn, tries) {
       let last;
       for (let i = 0; i < (tries || 3); i++) {
         try {
-          const res = await fetch(API, opts);
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return await res.json();
+          return await fn();
         } catch (err) {
           last = err;
           await new Promise((r) => setTimeout(r, 350 * (i + 1)));
@@ -467,10 +531,18 @@
 
     async function loadRemote() {
       const started = rev;
-      const data = await fetchJson();
-      if (!Array.isArray(data.activities)) throw new Error("Réponse invalide");
+      const data = await withRetry(async () => {
+        const { data, error } = await sb
+          .from("trip_state")
+          .select("activities")
+          .eq("id", TRIP_ID)
+          .single();
+        if (error) throw error;
+        if (!Array.isArray(data.activities)) throw new Error("Réponse invalide");
+        return data;
+      });
       if (started !== rev) return;
-      activities = data.activities;
+      activities = normalize(data.activities);
       persistLocal();
     }
 
@@ -488,14 +560,19 @@
         if (started !== rev) return;
         const snapshot = activities;
         try {
-          const data = await fetchJson({
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ activities: snapshot }),
+          const data = await withRetry(async () => {
+            const { data, error } = await sb
+              .from("trip_state")
+              .update({ activities: snapshot, updated_at: new Date().toISOString() })
+              .eq("id", TRIP_ID)
+              .select("activities")
+              .single();
+            if (error) throw error;
+            return data;
           });
           if (started !== rev) return;
           if (Array.isArray(data.activities)) {
-            activities = data.activities;
+            activities = normalize(data.activities);
             persistLocal();
           }
           setSync("Enregistré · visible par tout le monde");
@@ -564,6 +641,79 @@
         .replace(/"/g, "&quot;");
     }
 
+    function docsHtml(act) {
+      const docs = Array.isArray(act.docs) ? act.docs : [];
+      const items = docs.length
+        ? `<ul class="doc-list">${docs.map((d, i) => `
+            <li>
+              <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener">${escapeHtml(d.name)}</a>
+              <button type="button" class="doc-x" data-doc-i="${i}" aria-label="Retirer le document">×</button>
+            </li>`).join("")}</ul>`
+        : "";
+      return `
+        <div class="docs">
+          ${items}
+          <label class="btn primary doc-add">
+            Ajouter un doc
+            <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.pdf,.jpg,.jpeg,.png,.webp,.heic" />
+          </label>
+        </div>`;
+    }
+
+    function wireDocs(act, reopen) {
+      const add = document.querySelector(".doc-add");
+      const input = add && add.querySelector("input");
+      if (input) {
+        input.addEventListener("change", async () => {
+          const file = input.files && input.files[0];
+          input.value = "";
+          if (!file) return;
+          const problem = isAllowedDoc(file);
+          if (problem) {
+            setSync(problem, true);
+            return;
+          }
+          add.setAttribute("aria-busy", "true");
+          setSync("Envoi du document…");
+          const path = `${act.id}/${uid()}-${safeFileName(file.name)}`;
+          const { error } = await sb.storage.from(DOCS_BUCKET).upload(path, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined,
+          });
+          add.removeAttribute("aria-busy");
+          if (error) {
+            setSync("Échec de l’envoi du document", true);
+            return;
+          }
+          const { data } = sb.storage.from(DOCS_BUCKET).getPublicUrl(path);
+          if (!Array.isArray(act.docs)) act.docs = [];
+          act.docs.push({ name: file.name, path, url: data.publicUrl });
+          touch();
+          reopen();
+        });
+      }
+      document.querySelectorAll("[data-doc-i]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const i = Number(btn.dataset.docI);
+          const doc = act.docs && act.docs[i];
+          if (!doc) return;
+          act.docs = act.docs.filter((_, idx) => idx !== i);
+          touch();
+          reopen();
+          if (doc.path) {
+            await sb.storage.from(DOCS_BUCKET).remove([doc.path]).catch(() => {});
+          }
+        });
+      });
+    }
+
+    async function removeStoredDocs(act) {
+      const paths = (act && act.docs ? act.docs : []).map((d) => d.path).filter(Boolean);
+      if (!paths.length) return;
+      await sb.storage.from(DOCS_BUCKET).remove(paths).catch(() => {});
+    }
+
     function openDrawer(html) {
       const drawer = document.getElementById("drawer");
       drawer.innerHTML = '<div class="handle"></div><div class="drawer-top"><button type="button" class="drawer-close" id="drawer-close" aria-label="Fermer">×</button></div>' + html;
@@ -599,7 +749,7 @@
         const title = input.value.trim();
         const category = (new FormData(e.target)).get("category");
         if (!title || !category) return;
-        activities.push({ id: uid(), title, note: "", category, slot: null, locked: false });
+        activities.push({ id: uid(), title, note: "", category, slot: null, locked: false, docs: [] });
         closeDrawer();
         touch();
       });
@@ -631,11 +781,13 @@
       openDrawer(`
         <h3>${escapeHtml(act.title)}</h3>
         ${note}
+        ${docsHtml(act)}
         <p class="hint">Choisis un créneau (2 activités max par case).</p>
         ${rows}
         <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
 
+      wireDocs(act, () => openAssign(id));
       document.querySelectorAll("[data-slot]").forEach((btn) => {
         btn.addEventListener("click", () => {
           act.slot = btn.dataset.slot;
@@ -644,9 +796,11 @@
         });
       });
       document.getElementById("delete").addEventListener("click", () => {
+        const gone = activities.find((a) => a.id === id);
         activities = activities.filter((a) => a.id !== id);
         closeDrawer();
         touch();
+        removeStoredDocs(gone);
       });
       document.getElementById("cancel").addEventListener("click", closeDrawer);
     }
@@ -658,15 +812,19 @@
         openDrawer(`
           <h3>${escapeHtml(act.title)}</h3>
           <p class="hint">Vol fixé dans le planning — on ne l’enlève pas.</p>
+          ${docsHtml(act)}
           <button class="btn ghost" type="button" id="cancel">Fermer</button>`);
+        wireDocs(act, () => openPlaced(id));
         document.getElementById("cancel").addEventListener("click", closeDrawer);
         return;
       }
       openDrawer(`
         <h3>${escapeHtml(act.title)}</h3>
         <p class="hint">L’enlever la renvoie dans la liste d’activités.</p>
+        ${docsHtml(act)}
         <button class="btn danger" type="button" id="remove">Enlever du planning</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
+      wireDocs(act, () => openPlaced(id));
       document.getElementById("remove").addEventListener("click", () => {
         act.slot = null;
         closeDrawer();
@@ -689,7 +847,7 @@
     async function boot() {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        try { activities = JSON.parse(cached).activities || []; } catch (_) {}
+        try { activities = normalize(JSON.parse(cached).activities || []); } catch (_) {}
         if (activities.length) render();
       }
       try {
