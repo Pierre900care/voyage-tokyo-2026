@@ -337,12 +337,15 @@
 
     .btn {
       appearance: none;
+      display: block;
+      box-sizing: border-box;
       border: 0;
       width: 100%;
       padding: 13px 16px;
       border-radius: 12px;
       font: inherit;
       font-size: 0.95rem;
+      text-align: center;
       cursor: pointer;
     }
     .btn.primary { background: var(--accent); color: #fff; }
@@ -401,23 +404,22 @@
       padding: 0 4px;
       cursor: pointer;
     }
-    .doc-file {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
     .doc-status {
       margin: 0 0 8px;
       font-size: 0.85rem;
       color: var(--danger);
     }
-    #doc-add-btn[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+    .doc-add-wrap { position: relative; }
+    .doc-add-wrap[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+    .doc-file {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      font-size: 0;
+      cursor: pointer;
+    }
 
     .traveler-grid {
       display: grid;
@@ -810,13 +812,15 @@
         <div class="docs">
           ${items}
           <p class="doc-status" id="doc-status" hidden></p>
-          <button type="button" class="btn primary" id="doc-add-btn">Ajouter un doc</button>
-          <input id="doc-file" class="doc-file" type="file" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic" />
+          <div class="doc-add-wrap" id="doc-add-wrap">
+            <span class="btn primary">Ajouter un doc</span>
+            <input id="doc-file" class="doc-file" type="file" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic" />
+          </div>
         </div>`;
     }
 
-    function wireDocs(act, reopen) {
-      const btn = document.getElementById("doc-add-btn");
+    function wireDocs(id, reopen) {
+      const wrap = document.getElementById("doc-add-wrap");
       const input = document.getElementById("doc-file");
       const status = document.getElementById("doc-status");
       const showDocErr = (msg) => {
@@ -826,8 +830,7 @@
         }
         setSync(msg, true);
       };
-      if (btn && input) {
-        btn.addEventListener("click", () => input.click());
+      if (wrap && input) {
         input.addEventListener("change", async () => {
           const file = input.files && input.files[0];
           input.value = "";
@@ -839,23 +842,31 @@
           }
           const type = docContentType(file);
           const name = docFileName(file, type);
-          const payload = file.type === type ? file : new File([file], name, { type });
-          btn.setAttribute("aria-busy", "true");
+          wrap.setAttribute("aria-busy", "true");
           setSync("Envoi du document…");
-          const path = `${act.id}/${uid()}-${safeFileName(name)}`;
-          const { error } = await sb.storage.from(DOCS_BUCKET).upload(path, payload, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: type,
+          const path = `${id}/${uid()}-${safeFileName(name)}`;
+          const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${DOCS_BUCKET}/${path}`, {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": type,
+            },
+            body: file,
           });
-          btn.removeAttribute("aria-busy");
-          if (error) {
+          wrap.removeAttribute("aria-busy");
+          if (!res.ok) {
             showDocErr("Échec de l’envoi — réessaie avec un JPG, PNG ou PDF.");
             return;
           }
-          const { data } = sb.storage.from(DOCS_BUCKET).getPublicUrl(path);
-          if (!Array.isArray(act.docs)) act.docs = [];
-          act.docs.push({ name, path, url: data.publicUrl });
+          const current = activities.find((a) => a.id === id);
+          if (!current) {
+            showDocErr("Activité introuvable — ferme et réouvre le tiroir.");
+            return;
+          }
+          const url = `${SUPABASE_URL}/storage/v1/object/public/${DOCS_BUCKET}/${path}`;
+          if (!Array.isArray(current.docs)) current.docs = [];
+          current.docs.push({ name, path, url });
           touch();
           reopen();
         });
@@ -954,7 +965,7 @@
         <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
 
-      wireDocs(act, () => openAssign(id));
+      wireDocs(id, () => openAssign(id));
       document.querySelectorAll("[data-slot]").forEach((btn) => {
         btn.addEventListener("click", () => {
           act.slot = btn.dataset.slot;
@@ -981,7 +992,7 @@
           <p class="hint">Vol fixé dans le planning — on ne l’enlève pas.</p>
           ${docsHtml(act)}
           <button class="btn ghost" type="button" id="cancel">Fermer</button>`);
-        wireDocs(act, () => openPlaced(id));
+        wireDocs(id, () => openPlaced(id));
         document.getElementById("cancel").addEventListener("click", closeDrawer);
         return;
       }
@@ -991,7 +1002,7 @@
         ${docsHtml(act)}
         <button class="btn danger" type="button" id="remove">Enlever du planning</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
-      wireDocs(act, () => openPlaced(id));
+      wireDocs(id, () => openPlaced(id));
       document.getElementById("remove").addEventListener("click", () => {
         act.slot = null;
         closeDrawer();
@@ -1034,6 +1045,7 @@
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState !== "visible") return;
+      if (document.getElementById("drawer").classList.contains("on")) return;
       enqueue(async () => {
         try {
           await loadRemote();
