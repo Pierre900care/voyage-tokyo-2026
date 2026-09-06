@@ -404,6 +404,64 @@
     .doc-add { display: block; text-align: center; cursor: pointer; }
     .doc-add input { display: none; }
     .doc-add[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+
+    .traveler-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .traveler {
+      appearance: none;
+      border: 0;
+      background: #fff;
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      text-align: center;
+      font: inherit;
+      color: var(--ink);
+    }
+    .traveler:active { transform: scale(0.99); }
+    .traveler img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+    .traveler span {
+      display: block;
+      padding: 10px 8px 12px;
+      font-weight: 650;
+      font-size: 0.95rem;
+    }
+    .t-desc { margin: 0 0 16px; font-size: 0.95rem; }
+    .t-block { margin: 0 0 14px; }
+    .t-block h4 {
+      margin: 0 0 6px;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .t-block ul {
+      margin: 0;
+      padding-left: 1.15em;
+      font-size: 0.92rem;
+    }
+    .t-photos {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .t-photos img {
+      display: block;
+      width: 100%;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
@@ -428,6 +486,9 @@
     </div>
     <p class="jst">Les sites de résa sont à l’heure japonaise (JST).</p>
     <div id="activities" class="act-list"></div>
+
+    <h2>Voyageurs</h2>
+    <div id="travelers" class="traveler-grid"></div>
   </div>
 
   <div class="backdrop" id="backdrop"></div>
@@ -450,6 +511,37 @@
     for (let d = 7; d <= 22; d++) DAYS.push(`2026-11-${String(d).padStart(2, "0")}`);
 
     const TRAVEL = new Set(["2026-11-07", "2026-11-08", "2026-11-22"]);
+
+    const TRAVELERS = [
+      {
+        id: "jean-christophe",
+        name: "Jean-Christophe",
+        photo: "voyageurs/jean-christophe.jpg",
+        description: "Amateur de bières, imprimeur fou, plongeur de l’extrême.",
+        strengths: ["Style à la Roger", "Puissance"],
+        weaknesses: ["Mental", "Fautes directes"],
+        photos: [
+          "voyageurs/jean-christophe-2.jpg",
+          "voyageurs/jean-christophe-3.jpg",
+        ],
+      },
+      {
+        id: "jean-charles",
+        name: "Jean-Charles",
+        photo: "voyageurs/jean-charles.jpg",
+        description: "Amateur de bonne bouffe, badminton addict, gamer PC.",
+        strengths: ["Perte de poids", "Progression constante"],
+        weaknesses: ["Sujet aux ampoules", "Déplacements un peu patauds"],
+        photos: [
+          "voyageurs/jean-charles-2.jpg",
+          "voyageurs/jean-charles-3.jpg",
+          "voyageurs/jean-charles-4.jpg",
+          "voyageurs/jean-charles-5.jpg",
+          "voyageurs/jean-charles-6.jpg",
+          "voyageurs/jean-charles-7.jpg",
+        ],
+      },
+    ];
 
     const CATEGORIES = [
       { id: "urgence", emoji: "🚨", label: "Urgence maximale", hint: "À booker le jour J" },
@@ -580,6 +672,38 @@
           setSync("Pas de réseau — nouvel essai au prochain geste", true);
         }
       });
+    }
+
+    function renderTravelers() {
+      document.getElementById("travelers").innerHTML = TRAVELERS.map((t) => `
+        <button type="button" class="traveler" data-traveler="${t.id}">
+          <img src="${escapeHtml(t.photo)}" alt="${escapeHtml(t.name)}" />
+          <span>${escapeHtml(t.name)}</span>
+        </button>`).join("");
+    }
+
+    function listHtml(items) {
+      return `<ul>${items.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`;
+    }
+
+    function openTraveler(id) {
+      const t = TRAVELERS.find((x) => x.id === id);
+      if (!t) return;
+      const gallery = t.photos.map((src) =>
+        `<img src="${escapeHtml(src)}" alt="" />`
+      ).join("");
+      openDrawer(`
+        <h3>${escapeHtml(t.name)}</h3>
+        <p class="t-desc">${escapeHtml(t.description)}</p>
+        <div class="t-block">
+          <h4>Points forts</h4>
+          ${listHtml(t.strengths)}
+        </div>
+        <div class="t-block">
+          <h4>Points faibles</h4>
+          ${listHtml(t.weaknesses)}
+        </div>
+        <div class="t-photos">${gallery}</div>`);
     }
 
     function render() {
@@ -843,8 +967,13 @@
       const el = e.target.closest("[data-assign]");
       if (el) openAssign(el.dataset.assign);
     });
+    document.getElementById("travelers").addEventListener("click", (e) => {
+      const el = e.target.closest("[data-traveler]");
+      if (el) openTraveler(el.dataset.traveler);
+    });
 
     async function boot() {
+      renderTravelers();
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         try { activities = normalize(JSON.parse(cached).activities || []); } catch (_) {}
