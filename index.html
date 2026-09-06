@@ -759,7 +759,7 @@
     function openAssign(id) {
       const act = activities.find((a) => a.id === id);
       if (!act) return;
-      const rows = DAYS.map((date) => {
+      const rows = DAYS.filter((date) => !TRAVEL.has(date)).map((date) => {
         const label = dayFmt.format(new Date(date + "T12:00:00"));
         const am = inSlot(date, "am");
         const pm = inSlot(date, "pm");
