@@ -401,9 +401,23 @@
       padding: 0 4px;
       cursor: pointer;
     }
-    .doc-add { display: block; text-align: center; cursor: pointer; }
-    .doc-add input { display: none; }
-    .doc-add[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+    .doc-file {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .doc-status {
+      margin: 0 0 8px;
+      font-size: 0.85rem;
+      color: var(--danger);
+    }
+    #doc-add-btn[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
 
     .traveler-grid {
       display: grid;
@@ -586,11 +600,29 @@
     }
 
     function isAllowedDoc(file) {
+      if (!file.size) return "Fichier vide.";
       if (file.size > MAX_DOC_BYTES) return "Fichier trop lourd (10 Mo max).";
-      const okType = /^(application\/pdf|image\/(jpeg|png|webp|heic|heif))$/i.test(file.type);
-      const okExt = /\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(file.name);
-      if (!okType && !okExt) return "PDF ou image uniquement.";
-      return "";
+      const type = (file.type || "").toLowerCase();
+      const name = file.name || "";
+      if (type.startsWith("image/") || type === "application/pdf" || type === "application/octet-stream") return "";
+      if (/\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(name)) return "";
+      if (!type && !name) return "";
+      return "PDF ou image uniquement.";
+    }
+
+    function docContentType(file) {
+      const name = file.name || "";
+      const type = (file.type || "").toLowerCase();
+      if (/\.pdf$/i.test(name) || type === "application/pdf") return "application/pdf";
+      if (/\.png$/i.test(name) || type === "image/png") return "image/png";
+      if (/\.webp$/i.test(name) || type === "image/webp") return "image/webp";
+      if (/\.hei[cf]$/i.test(name) || type === "image/heic" || type === "image/heif") return "image/heic";
+      return "image/jpeg";
+    }
+
+    function docFileName(file, type) {
+      if (file.name) return file.name;
+      return type === "application/pdf" ? "document.pdf" : "photo.jpg";
     }
 
     async function withRetry(fn, tries) {
@@ -777,42 +809,53 @@
       return `
         <div class="docs">
           ${items}
-          <label class="btn primary doc-add">
-            Ajouter un doc
-            <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.pdf,.jpg,.jpeg,.png,.webp,.heic" />
-          </label>
+          <p class="doc-status" id="doc-status" hidden></p>
+          <button type="button" class="btn primary" id="doc-add-btn">Ajouter un doc</button>
+          <input id="doc-file" class="doc-file" type="file" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic" />
         </div>`;
     }
 
     function wireDocs(act, reopen) {
-      const add = document.querySelector(".doc-add");
-      const input = add && add.querySelector("input");
-      if (input) {
+      const btn = document.getElementById("doc-add-btn");
+      const input = document.getElementById("doc-file");
+      const status = document.getElementById("doc-status");
+      const showDocErr = (msg) => {
+        if (status) {
+          status.hidden = false;
+          status.textContent = msg;
+        }
+        setSync(msg, true);
+      };
+      if (btn && input) {
+        btn.addEventListener("click", () => input.click());
         input.addEventListener("change", async () => {
           const file = input.files && input.files[0];
           input.value = "";
           if (!file) return;
           const problem = isAllowedDoc(file);
           if (problem) {
-            setSync(problem, true);
+            showDocErr(problem);
             return;
           }
-          add.setAttribute("aria-busy", "true");
+          const type = docContentType(file);
+          const name = docFileName(file, type);
+          const payload = file.type === type ? file : new File([file], name, { type });
+          btn.setAttribute("aria-busy", "true");
           setSync("Envoi du document…");
-          const path = `${act.id}/${uid()}-${safeFileName(file.name)}`;
-          const { error } = await sb.storage.from(DOCS_BUCKET).upload(path, file, {
+          const path = `${act.id}/${uid()}-${safeFileName(name)}`;
+          const { error } = await sb.storage.from(DOCS_BUCKET).upload(path, payload, {
             cacheControl: "3600",
             upsert: false,
-            contentType: file.type || undefined,
+            contentType: type,
           });
-          add.removeAttribute("aria-busy");
+          btn.removeAttribute("aria-busy");
           if (error) {
-            setSync("Échec de l’envoi du document", true);
+            showDocErr("Échec de l’envoi — réessaie avec un JPG, PNG ou PDF.");
             return;
           }
           const { data } = sb.storage.from(DOCS_BUCKET).getPublicUrl(path);
           if (!Array.isArray(act.docs)) act.docs = [];
-          act.docs.push({ name: file.name, path, url: data.publicUrl });
+          act.docs.push({ name, path, url: data.publicUrl });
           touch();
           reopen();
         });
