@@ -206,13 +206,22 @@
       background: #BC002D;
       color: #ffffff;
       border-radius: 12px;
-      padding: 12px 14px;
+      padding: 12px 36px 12px 14px;
       text-align: left;
       font: inherit;
       font-size: 0.95rem;
       cursor: pointer;
+      position: relative;
     }
     .act:active { background: #9A0024; }
+    .act-crowd {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: 0.85rem;
+      line-height: 1;
+      pointer-events: none;
+    }
     .act-note {
       display: block;
       margin-top: 4px;
@@ -590,76 +599,100 @@
       },
     ];
 
+    const CROWD = {
+      high: { emoji: "🔴", label: "Très touristique" },
+      mid: { emoji: "🟠", label: "Moyennement touristique" },
+      low: { emoji: "🟢", label: "Peu touristique" },
+    };
+
     const DETAILS = {
       ghibli: {
+        crowd: "high",
         query: "Musée Ghibli Mitaka réservation",
         blurb: "Musée du studio dans le parc Inokashira à Mitaka, ~35 min de Shinjuku. L’intérieur se visite uniquement sur créneau réservé, plutôt le matin. Vente le 10 octobre à 10h00 JST pile — ça part en quelques minutes.",
       },
       "shibuya-sky": {
+        crowd: "high",
         query: "Shibuya Sky réservation sunset",
         blurb: "Rooftop au sommet de Shibuya Scramble Square, vue à 360° sur la gare. Le créneau coucher de soleil est le plus demandé. Billets 28 jours avant à 00h00 JST — le sunset part en ~30 secondes.",
       },
       "pkmn-cafe": {
+        crowd: "mid",
         query: "Pokémon Cafe Tokyo Nihonbashi reservation",
         blurb: "Café officiel à Nihonbashi, menu et déco Pokémon, résa en ligne indispensable. Compter 1 h sur place. Tout novembre est mis en ligne le 1er octobre à 18h00 JST.",
       },
       shinkansen: {
+        crowd: "mid",
         query: "Shinkansen reservation oversized baggage",
         blurb: "Train intercités : Tokyo–Kyoto ~2 h 15. Réserver 1 mois avant, et surtout l’espace gros bagages si une valise dépasse 160 cm (sinon amende / soute).",
       },
       romancecar: {
+        crowd: "mid",
         query: "Romancecar Odakyu Hakone reservation",
         blurb: "Odakyu panoramique vers Hakone / le Fuji, sièges avant vitrés. ~1 h 30 depuis Shinjuku. Ouvre 1 mois avant à 10h00 JST ; viser les places « Super Seat » / observatoire.",
       },
       disney: {
+        crowd: "high",
         query: "Tokyo Disney Resort tickets 2026",
         blurb: "Disneyland ou DisneySea à Maihama (~20 min de Tokyo). Journée complète, arriver à l’ouverture. Billets datés 2 mois avant à 14h00 JST.",
       },
       teamlab: {
+        crowd: "high",
         query: "teamLab Planets Tokyo tickets",
         blurb: "Planets (Toyosu, bassins d’eau, plus immersif) ou Borderless (Azabudai). Prévoir 2–3 h et des chaussettes de rechange à Planets. Mise en vente le 1er octobre.",
       },
       toyosu: {
+        crowd: "high",
         query: "Toyosu tuna auction visitor registration",
         blurb: "Criée du thon dès 5 h à Toyosu. L’accès au sol se joue au tirage (inscription début octobre). Sinon passerelle publique gratuite, plus simple, moins proche.",
       },
       wagyu: {
+        crowd: "mid",
         query: "Kobe beef restaurant reservation Kyoto Tokyo",
         blurb: "Kobe est à ~1 h de Kyoto, pas sur l’axe Tokyo–Fuji–Kii : un dîner depuis Kyoto, pas une étape. Les bonnes tables (wagyu ou omakase) se réservent 3 à 6 mois avant. L’omakase se fait aussi très bien à Tokyo.",
       },
       mousses: {
+        crowd: "mid",
         query: "Saiho-ji Temple des Mousses Kyoto reservation",
         blurb: "Saihō-ji à Kyoto, jardin de mousses classé. Demande par dossier ~2 mois avant, visite courte souvent précédée d’une copie de sutra. Pas de billet à l’entrée.",
       },
       tori: {
+        crowd: "mid",
         query: "Tori no Ichi Asakusa 19 novembre 2026",
         blurb: "Foire des râteaux porte-bonheur (kumade) à Ōtori / Asakusa, le 19 novembre. Pas de résa. Foule et stands le soir, y aller en fin d’après-midi.",
       },
       eikando: {
+        crowd: "mid",
         query: "Eikando Kyoto autumn illumination 2026",
         blurb: "Zenrin-ji à Kyoto, érables et éclairages de nuit dès le 20 novembre. File le soir, arriver avant l’allumage. Combinable avec un temple du Higashiyama.",
       },
       fushimi: {
+        crowd: "high",
         query: "Fushimi Inari taisha early morning",
         blurb: "Milliers de torii vermillon jusqu’au mont Inari, au sud de Kyoto. Gratuit, 2 h pour monter. Y être avant 7h30 : après 9 h c’est noir de monde.",
       },
       arashiyama: {
+        crowd: "high",
         query: "Arashiyama bamboo grove early morning",
         blurb: "Forêt de bambous + pont Togetsukyō, ouest de Kyoto. 30–45 min sur place. Avant 8 h, sinon saturé de groupes. Combinable avec Tenryū-ji à côté.",
       },
       kiyomizu: {
+        crowd: "high",
         query: "Kiyomizu-dera Kyoto opening time",
         blurb: "Temple sur pilotis, vue sur l’est de Kyoto. Payant, 1 h. À l’ouverture (6 h) pour la terrasse presque vide, puis descente par Sannenzaka.",
       },
       sensoji: {
+        crowd: "high",
         query: "Senso-ji Asakusa early morning",
         blurb: "Plus vieux temple de Tokyo, à Asakusa, gratuit. Nakamise pour les boutiques. Avant 7 h ou très tard le soir pour les photos sans la foule.",
       },
       badminton: {
+        crowd: "low",
         query: "Tokyo badminton shop Yonex Manda Meguro",
         blurb: "Magasins spécialisés à Tokyo (Manda Meguro, Yonex, grandes enseignes sport). Cordage, volants et raquettes moins chers qu’en Europe. Prévoir une demi-journée et la liste des modèles.",
       },
       "photo-shops": {
+        crowd: "low",
         query: "Map Camera Shinjuku Kitamura used cameras Tokyo",
         blurb: "Quartier photo de Shinjuku : Map Camera, Kitamura, Yodobashi / Bic. Occas, argentique, proto. Comparer les prix, demander la facture pour la douane.",
       },
@@ -874,7 +907,11 @@
         const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
         const cards = items.map((a) => {
           const note = a.note ? `<span class="act-note">${escapeHtml(a.note)}</span>` : "";
-          return `<button type="button" class="act" data-assign="${a.id}"><strong>${escapeHtml(a.title)}</strong>${note}</button>`;
+          const crowd = CROWD[DETAILS[a.id]?.crowd];
+          const badge = crowd
+            ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
+            : "";
+          return `<button type="button" class="act" data-assign="${a.id}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
         }).join("");
         return `<section class="cat-block"><h3>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h3>${cards}</section>`;
       }).join("");
