@@ -14,8 +14,6 @@
       --line: #F0D4D6;
       --accent: #BC002D;
       --accent-soft: #F8D5DA;
-      --vol: #BC002D;
-      --vol-soft: #F8D5DA;
       --danger: #9B2C2C;
     }
 
@@ -26,7 +24,6 @@
       background: var(--bg);
       color: var(--ink);
       line-height: 1.4;
-      padding: 0 0 48px;
       padding-bottom: max(48px, env(safe-area-inset-bottom));
     }
     .sun {
@@ -35,7 +32,7 @@
       right: 12px;
       height: 72%;
       aspect-ratio: 1;
-      background: #BC002D;
+      background: var(--accent);
       border-radius: 50%;
       opacity: 1;
       pointer-events: none;
@@ -85,7 +82,7 @@
       position: absolute;
       width: 12px;
       height: 12px;
-      background: #BC002D;
+      background: var(--accent);
       border-radius: 50%;
       opacity: 1;
       top: 50%;
@@ -116,7 +113,7 @@
     }
 
     .day {
-      background-color: #FFFFFF;
+      background-color: var(--card);
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 12px 14px 10px;
@@ -133,8 +130,8 @@
       font-size: 0.7rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      background: var(--vol-soft);
-      color: var(--vol);
+      background: var(--accent-soft);
+      color: var(--accent);
       padding: 2px 7px;
       border-radius: 999px;
     }
@@ -161,7 +158,7 @@
       padding: 7px 10px;
       border: 0;
       border-radius: 9px;
-      background: #BC002D;
+      background: var(--accent);
       color: #ffffff;
       font: inherit;
       font-size: 0.88rem;
@@ -203,7 +200,7 @@
       display: block;
       width: 100%;
       border: 0;
-      background: #BC002D;
+      background: var(--accent);
       color: #ffffff;
       border-radius: 12px;
       padding: 12px 36px 12px 14px;
@@ -337,8 +334,8 @@
       height: 36px;
       border: 0;
       border-radius: 50%;
-      background: #F8DDE0;
-      color: #BC002D;
+      background: var(--accent-soft);
+      color: var(--accent);
       font-size: 1.5rem;
       line-height: 36px;
       padding: 0;
@@ -377,8 +374,8 @@
       cursor: pointer;
     }
     .btn.primary { background: var(--accent); color: #fff; }
-    .btn.blue { background: #8acaff; color: #fff; }
-    .btn.soft { background: #F8DDE0; color: var(--accent); margin-top: 8px; }
+    .btn.blue { background: var(--bg); color: #fff; }
+    .btn.soft { background: var(--accent-soft); color: var(--accent); margin-top: 8px; }
     .btn.ghost { background: transparent; color: var(--muted); }
     .btn.danger { background: #F4D6D6; color: var(--danger); margin-top: 8px; }
 
@@ -553,7 +550,7 @@
   <div class="drawer" id="drawer" role="dialog" aria-modal="true"></div>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/+esm";
 
     const SUPABASE_URL = "https://lvisxqcwjblrmuxrnhfg.supabase.co";
     const SUPABASE_KEY = "sb_publishable_lb5tHPwcfbs2_nRVR93Lrw_Raonh8rK";
@@ -622,189 +619,225 @@
 
     const DETAILS = {
       ghibli: {
+        place: "tokyo",
         crowd: "high",
         query: "Musée Ghibli Mitaka réservation",
         blurb: "Musée du studio dans le parc Inokashira à Mitaka, ~35 min de Shinjuku. L’intérieur se visite uniquement sur créneau réservé, plutôt le matin. Vente le 10 octobre à 10h00 JST pile — ça part en quelques minutes.",
       },
       "shibuya-sky": {
+        place: "tokyo",
         crowd: "high",
         query: "Shibuya Sky réservation sunset",
         blurb: "Rooftop au sommet de Shibuya Scramble Square, vue à 360° sur la gare. Le créneau coucher de soleil est le plus demandé. Billets 28 jours avant à 00h00 JST — le sunset part en ~30 secondes.",
       },
       "pkmn-cafe": {
+        place: "tokyo",
         crowd: "mid",
         pricey: true,
         query: "Pokémon Cafe Tokyo Nihonbashi reservation",
         blurb: "Café officiel à Nihonbashi, menu et déco Pokémon, résa en ligne indispensable. Compter 1 h sur place. Tout novembre est mis en ligne le 1er octobre à 18h00 JST.",
       },
       shinkansen: {
+        place: "trajets",
         crowd: "mid",
         pricey: true,
         query: "Shinkansen reservation oversized baggage",
         blurb: "Train intercités : Tokyo–Kyoto ~2 h 15. Réserver 1 mois avant, et surtout l’espace gros bagages si une valise dépasse 160 cm (sinon amende / soute).",
       },
       romancecar: {
+        place: "fuji",
         crowd: "mid",
         pricey: true,
         query: "Romancecar Odakyu Hakone reservation",
         blurb: "Odakyu panoramique vers Hakone / le Fuji, sièges avant vitrés. ~1 h 30 depuis Shinjuku. Ouvre 1 mois avant à 10h00 JST ; viser les places « Super Seat » / observatoire.",
       },
       disney: {
+        place: "tokyo",
         crowd: "high",
         pricey: true,
         query: "Tokyo Disney Resort tickets 2026",
         blurb: "Disneyland ou DisneySea à Maihama (~20 min de Tokyo). Journée complète, arriver à l’ouverture. Billets datés 2 mois avant à 14h00 JST.",
       },
       teamlab: {
+        place: "tokyo",
         crowd: "high",
         pricey: true,
         query: "teamLab Planets Tokyo tickets",
         blurb: "Planets (Toyosu, bassins d’eau, plus immersif) ou Borderless (Azabudai). Prévoir 2–3 h et des chaussettes de rechange à Planets. Mise en vente le 1er octobre.",
       },
       toyosu: {
+        place: "tokyo",
         crowd: "high",
         query: "Toyosu tuna auction visitor registration",
         blurb: "Criée du thon dès 5 h à Toyosu. L’accès au sol se joue au tirage (inscription début octobre). Sinon passerelle publique gratuite, plus simple, moins proche.",
       },
       wagyu: {
+        place: "kyoto",
         crowd: "mid",
         pricey: true,
         query: "Kobe beef restaurant reservation Kyoto Tokyo",
         blurb: "Kobe est à ~1 h de Kyoto, pas sur l’axe Tokyo–Fuji–Kii : un dîner depuis Kyoto, pas une étape. Les bonnes tables (wagyu ou omakase) se réservent 3 à 6 mois avant. L’omakase se fait aussi très bien à Tokyo.",
       },
       mousses: {
+        place: "kyoto",
         crowd: "mid",
         query: "Saiho-ji Temple des Mousses Kyoto reservation",
         blurb: "Saihō-ji à Kyoto, jardin de mousses classé. Demande par dossier ~2 mois avant, visite courte souvent précédée d’une copie de sutra. Pas de billet à l’entrée.",
       },
       tori: {
+        place: "tokyo",
         crowd: "mid",
         query: "Tori no Ichi Asakusa 19 novembre 2026",
         blurb: "Foire des râteaux porte-bonheur (kumade) à Ōtori / Asakusa, le 19 novembre. Pas de résa. Foule et stands le soir, y aller en fin d’après-midi.",
       },
       eikando: {
+        place: "kyoto",
         crowd: "mid",
         query: "Eikando Kyoto autumn illumination 2026",
         blurb: "Zenrin-ji à Kyoto, érables et éclairages de nuit dès le 20 novembre. File le soir, arriver avant l’allumage. Combinable avec un temple du Higashiyama.",
       },
       fushimi: {
+        place: "kyoto",
         crowd: "high",
         query: "Fushimi Inari taisha early morning",
         blurb: "Milliers de torii vermillon jusqu’au mont Inari, au sud de Kyoto. Gratuit, 2 h pour monter. Y être avant 7h30 : après 9 h c’est noir de monde.",
       },
       arashiyama: {
+        place: "kyoto",
         crowd: "high",
         query: "Arashiyama bamboo grove early morning",
         blurb: "Forêt de bambous + pont Togetsukyō, ouest de Kyoto. 30–45 min sur place. Avant 8 h, sinon saturé de groupes. Combinable avec Tenryū-ji à côté.",
       },
       kiyomizu: {
+        place: "kyoto",
         crowd: "high",
         query: "Kiyomizu-dera Kyoto opening time",
         blurb: "Temple sur pilotis, vue sur l’est de Kyoto. Payant, 1 h. À l’ouverture (6 h) pour la terrasse presque vide, puis descente par Sannenzaka.",
       },
       sensoji: {
+        place: "tokyo",
         crowd: "high",
         query: "Senso-ji Asakusa early morning",
         blurb: "Plus vieux temple de Tokyo, à Asakusa, gratuit. Nakamise pour les boutiques. Avant 7 h ou très tard le soir pour les photos sans la foule.",
       },
       badminton: {
+        place: "tokyo",
         crowd: "low",
         query: "Tokyo badminton shop Yonex Manda Meguro",
         blurb: "Magasins spécialisés à Tokyo (Manda Meguro, Yonex, grandes enseignes sport). Cordage, volants et raquettes moins chers qu’en Europe. Prévoir une demi-journée et la liste des modèles.",
       },
       "photo-shops": {
+        place: "tokyo",
         crowd: "low",
         query: "Map Camera Shinjuku Kitamura used cameras Tokyo",
         blurb: "Quartier photo de Shinjuku : Map Camera, Kitamura, Yodobashi / Bic. Occas, argentique, proto. Comparer les prix, demander la facture pour la douane.",
       },
       nachi: {
+        place: "kii",
         crowd: "high",
         query: "Nachi Falls Seiganto-ji Kumano Nachi Taisha bus",
         blurb: "Carte postale du Kii : plus haute chute du Japon (133 m), pagode rouge et Kumano Nachi Taisha. 2–3 h. Bus depuis Katsuura ou Shingu (~30–40 min). Novembre : bel automne, un peu de foule le week-end. Vue sur la chute gratuite, temple payant.",
       },
       koyasan: {
+        place: "kii",
         crowd: "high",
         pricey: true,
         query: "Koyasan shukubo reservation Okunoin",
         blurb: "Mont Kōya, limite nord du Kii. Temples, allée d’Okunoin la nuit, petit-déj monastique. Compter 1 nuit en shukubo — réserver 1 à 3 mois avant. Depuis Kyoto : Nankai + funiculaire, ~2 h. À faire en arrivant dans la péninsule, pas en aller-retour depuis Nachi.",
       },
       shirahama: {
+        place: "kii",
         crowd: "high",
         query: "Shirahama Wakayama Sandanbeki Sakino-yu onsen",
         blurb: "Station balnéaire : plage, falaises Sandanbeki, onsen face à la mer (Saki-no-yu). En novembre l’eau est froide, l’ambiance reste « resort ». Train Kuroshio depuis Wakayama. 2–3 h sur place, ou une nuit pour l’onsen le soir.",
       },
       hongu: {
+        place: "kii",
         crowd: "high",
         query: "Kumano Hongu Taisha Oyunohara grand torii",
         blurb: "Cœur des 3 grands Kumano. Le torii géant d’Oyunohara dans la plaine est le cliché. Village petit, cars le midi. Combinable avec une étape du Kōdo et Yunomine (bus 20 min). Gratuit, 45–90 min.",
       },
       ise: {
+        place: "kii",
         crowd: "high",
         query: "Ise Jingu Naiku Geku access from Kyoto",
         blurb: "Le plus sacré du Shinto, côté Mie (est du Kii). Très fréquenté, surtout par les Japonais. À l’écart de Nachi / Shirahama : seulement si vous longez l’est, pas si vous restez ouest/sud Wakayama. Gratuit, une demi-journée (Naiku + Geku).",
       },
       "kodo-nakahechi": {
+        place: "kii",
         crowd: "mid",
         query: "Kumano Kodo Nakahechi Hosshinmon-oji Hongu hike",
         blurb: "La classique UNESCO : Hosshinmon-ōji → Hongu, ~7 km / 2–3 h en forêt. Sentier balisé, quelques marcheurs. Chaussures, eau, tampon aux ōji. Bus jusqu’au départ depuis Hongu. Le bon milieu « on a marché pour de vrai » sans raid.",
       },
       yunomine: {
+        place: "kii",
         crowd: "mid",
         query: "Yunomine Onsen Tsuboyu reservation UNESCO",
         blurb: "Plus vieil onsen du Kii, village minuscule près de Hongu. Tsuboyu : petit cabanon classé UNESCO, un groupe à la fois, résa sur place le jour même (file tôt le matin). Se couple avec Hongu. Serviette + petites pièces.",
       },
       kawayu: {
+        place: "kii",
         crowd: "mid",
         query: "Kawayu Onsen river bath sennin-buro November",
         blurb: "Vous creusez un trou dans le gravier de la rivière, l’eau chaude monte. Novembre est le bon moment (l’hiver ils font un grand bain collectif). Ludique, moins de cars qu’à Nachi. Maillot + serviette, 30–60 min. Bus depuis Hongu.",
       },
       hayatama: {
+        place: "kii",
         crowd: "mid",
         query: "Kumano Hayatama Taisha Shingu camphor tree",
         blurb: "3ᵉ grand Kumano, à Shingu, souvent zappé. Ville réelle, pas un parc. Le camphrier millénaire vaut le détour. 45 min sur place. Shingu est un bon nœud train/bus vers Nachi et Hongu.",
       },
       dorokyo: {
+        place: "kii",
         crowd: "mid",
         query: "Dorokyo gorge boat cruise Kitayama Wakayama",
         blurb: "Canyon et bateau à fond plat sur la Kitayama. Un peu « attraction », le paysage est costaud. Horaires selon saison et niveau d’eau — vérifier la veille. Demi-journée depuis Shingu / Hongu, plutôt en voiture ou taxi.",
       },
       hashigui: {
+        place: "kii",
         crowd: "mid",
         query: "Hashigui-iwa Kushimoto rock pillars",
         blurb: "Alignement de rochers dans la mer, sud de la péninsule à Kushimoto. 20 min sur place, très photogénique, peu d’infra. Limited Express Kuroshio jusqu’à Kushimoto, ou voiture. À grouper avec le cap Shionomisaki.",
       },
       shionomisaki: {
+        place: "kii",
         crowd: "mid",
         query: "Cape Shionomisaki lighthouse Kushimoto",
         blurb: "Pointe sud de Honshu, phare et océan. Plus symbolique que spectaculaire. 30–45 min. À grouper avec Hashigui-iwa si vous descendez tout au sud. Bus depuis Kushimoto.",
       },
       "katsuura-thon": {
+        place: "kii",
         crowd: "low",
         query: "Nachikatsuura tuna market morning auction",
         blurb: "Vrai port, pas Toyosu. Criée et petit-déj thon vers 6–8 h. Ambiance ouvrière, peu d’étrangers. Pas de résa. Katsuura est aussi le camp de base pour Nachi (bus).",
       },
       totsukawa: {
+        place: "kii",
         crowd: "low",
         query: "Totsukawa village Wakayama onsen mountain road",
         blurb: "Routes étroites, gorges, onsen isolés. Le Kii « vide ». Il faut une voiture et du temps — pas jouable en transports le jour même. Plutôt une nuit si vous y allez.",
       },
       ryujin: {
+        place: "kii",
         crowd: "low",
         pricey: true,
         query: "Ryujin Onsen Wakayama reservation",
         blurb: "Onsen de montagne très local, entre Kōya et Hongu. Nuit calme, presque aucun touriste occidental. Réserver le ryokan ~1 mois avant. Voiture ou bus rare. Prix d’une nuit avec repas.",
       },
       "kodo-ogumotori": {
+        place: "kii",
         crowd: "low",
         query: "Kumano Kodo Ogumotori-goe Hongu Nachi hike",
         blurb: "Hongu ↔ Nachi à pied, ~8 h et gros dénivelé (Ogumotori-goe). Autre option : Kohechi, Koya ↔ Hongu sur plusieurs jours. Là vous n’êtes plus en visite, vous êtes en trek. Frontale, eau, départ tôt, check météo.",
       },
       umikongo: {
+        place: "kii",
         crowd: "low",
         query: "Umikongo coast Kozagawa Wakayama cliffs",
         blurb: "Falaises et villages de pêche (Kozagawa, côte sud). Zéro bus utile : voiture. Taiji est à côté mais a un lourd passé baleinier — à voir en connaissance de cause, ou à éviter. 1–2 h de stops photo.",
       },
       oji: {
+        place: "kii",
         crowd: "low",
         query: "Kumano Kodo oji shrines Nakahechi",
         blurb: "Petits autels-bornes le long du Kōdo, souvent seuls, zéro infrastructure. Se ramasse en marchant une étape (Nakahechi). Tampon dans le carnet du pèlerin si vous en prenez un à Hongu.",
@@ -829,54 +862,18 @@
       { id: "autre", label: "Autre" },
     ];
 
-    const PLACE_BY_ID = {
-      ghibli: "tokyo",
-      "shibuya-sky": "tokyo",
-      "pkmn-cafe": "tokyo",
-      disney: "tokyo",
-      teamlab: "tokyo",
-      toyosu: "tokyo",
-      tori: "tokyo",
-      sensoji: "tokyo",
-      badminton: "tokyo",
-      "photo-shops": "tokyo",
-      romancecar: "fuji",
-      wagyu: "kyoto",
-      mousses: "kyoto",
-      eikando: "kyoto",
-      fushimi: "kyoto",
-      arashiyama: "kyoto",
-      kiyomizu: "kyoto",
-      koyasan: "kii",
-      shirahama: "kii",
-      yunomine: "kii",
-      kawayu: "kii",
-      dorokyo: "kii",
-      "katsuura-thon": "kii",
-      ryujin: "kii",
-      nachi: "kii",
-      hongu: "kii",
-      ise: "kii",
-      "kodo-nakahechi": "kii",
-      hayatama: "kii",
-      hashigui: "kii",
-      shionomisaki: "kii",
-      totsukawa: "kii",
-      "kodo-ogumotori": "kii",
-      umikongo: "kii",
-      oji: "kii",
-      shinkansen: "trajets",
-    };
-
     const dayFmt = new Intl.DateTimeFormat("fr-FR", {
       weekday: "short",
       day: "numeric",
       month: "short",
     });
 
+    const CAT_IDS = new Set(CATEGORIES.map((c) => c.id));
+
     let activities = [];
     let rev = 0;
     let chain = Promise.resolve();
+    let lastFocus = null;
 
     function uid() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -906,9 +903,8 @@
       if (file.size > MAX_DOC_BYTES) return "Fichier trop lourd (10 Mo max).";
       const type = (file.type || "").toLowerCase();
       const name = file.name || "";
-      if (type.startsWith("image/") || type === "application/pdf" || type === "application/octet-stream") return "";
+      if (type.startsWith("image/") || type === "application/pdf") return "";
       if (/\.(pdf|jpe?g|png|webp|heic|heif)$/i.test(name)) return "";
-      if (!type && !name) return "";
       return "PDF ou image uniquement.";
     }
 
@@ -1010,7 +1006,7 @@
 
     function renderTravelers() {
       document.getElementById("travelers").innerHTML = TRAVELERS.map((t) => `
-        <button type="button" class="traveler" data-traveler="${t.id}">
+        <button type="button" class="traveler" data-traveler="${escapeHtml(t.id)}">
           <img src="${escapeHtml(t.photo)}" alt="${escapeHtml(t.name)}" />
           <span>${escapeHtml(t.name)}</span>
         </button>`).join("");
@@ -1071,12 +1067,16 @@
           const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
           return `<section class="cat-block"><h4>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h4>${items.map(actCard).join("")}</section>`;
         }).join("");
-        return `<section class="place-block"><h3>${escapeHtml(place.label)}</h3>${cats}</section>`;
+        const orphans = here.filter((a) => !CAT_IDS.has(a.category));
+        const extra = orphans.length
+          ? `<section class="cat-block"><h4>Autre</h4>${orphans.map(actCard).join("")}</section>`
+          : "";
+        return `<section class="place-block"><h3>${escapeHtml(place.label)}</h3>${cats}${extra}</section>`;
       }).join("");
     }
 
     function placeOf(act) {
-      return PLACE_BY_ID[act.id] || act.place || "autre";
+      return (DETAILS[act.id] && DETAILS[act.id].place) || act.place || "autre";
     }
 
     function actCard(a) {
@@ -1092,7 +1092,7 @@
           : "",
       ].join("");
       const badge = marks ? `<span class="act-marks">${marks}</span>` : "";
-      return `<button type="button" class="act" data-assign="${a.id}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
+      return `<button type="button" class="act" data-assign="${escapeHtml(a.id)}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
     }
 
     function renderSlot(date, part, label) {
@@ -1102,7 +1102,7 @@
         inner = '<div class="empty">Libre</div>';
       } else {
         inner = items.map((a) =>
-          `<span class="chip" role="button" tabindex="0" data-open="${a.id}">${escapeHtml(a.title)}</span>`
+          `<button type="button" class="chip" data-open="${escapeHtml(a.id)}">${escapeHtml(a.title)}</button>`
         ).join("");
       }
       return `
@@ -1216,6 +1216,7 @@
 
     function openDrawer(html) {
       const drawer = document.getElementById("drawer");
+      if (!drawer.classList.contains("on")) lastFocus = document.activeElement;
       drawer.innerHTML = '<div class="handle"></div><div class="drawer-top"><button type="button" class="drawer-close" id="drawer-close" aria-label="Fermer">×</button></div><div class="drawer-body">' + html + "</div>";
       drawer.classList.add("on");
       document.getElementById("backdrop").classList.add("on");
@@ -1225,6 +1226,9 @@
     function closeDrawer() {
       document.getElementById("drawer").classList.remove("on");
       document.getElementById("backdrop").classList.remove("on");
+      const back = lastFocus;
+      lastFocus = null;
+      if (back && typeof back.focus === "function") back.focus();
     }
 
     function openAdd() {
@@ -1365,6 +1369,11 @@
 
     document.getElementById("add-btn").addEventListener("click", openAdd);
     document.getElementById("backdrop").addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (!document.getElementById("drawer").classList.contains("on")) return;
+      closeDrawer();
+    });
     document.getElementById("planning").addEventListener("click", (e) => {
       const el = e.target.closest("[data-open]");
       if (el) openPlaced(el.dataset.open);
