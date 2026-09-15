@@ -1283,9 +1283,17 @@
         <h3>${escapeHtml(act.title)}</h3>
         ${detailHtml(act)}
         <button class="btn primary" type="button" id="to-slots">Ajouter au planning</button>
-        ${docsHtml(act, "soft")}`);
+        ${docsHtml(act, "soft")}
+        <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>`);
       document.getElementById("to-slots").addEventListener("click", () => openSlotPicker(id));
       wireDocs(id, () => openAssign(id));
+      document.getElementById("delete").addEventListener("click", () => {
+        const gone = activities.find((a) => a.id === id);
+        activities = activities.filter((a) => a.id !== id);
+        closeDrawer();
+        touch();
+        removeStoredDocs(gone);
+      });
     }
 
     function openSlotPicker(id) {
@@ -1313,7 +1321,6 @@
         <h3>${escapeHtml(act.title)}</h3>
         <p class="hint">Choisis un créneau (2 activités max par case).</p>
         ${rows}
-        <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>
         <button class="btn ghost" type="button" id="cancel">Annuler</button>`);
 
       document.querySelectorAll("[data-slot]").forEach((btn) => {
@@ -1323,13 +1330,6 @@
           closeDrawer();
           touch();
         });
-      });
-      document.getElementById("delete").addEventListener("click", () => {
-        const gone = activities.find((a) => a.id === id);
-        activities = activities.filter((a) => a.id !== id);
-        closeDrawer();
-        touch();
-        removeStoredDocs(gone);
       });
       document.getElementById("cancel").addEventListener("click", () => openAssign(id));
     }
