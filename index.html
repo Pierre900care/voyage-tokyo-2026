@@ -214,13 +214,22 @@
       position: relative;
     }
     .act:active { background: #9A0024; }
-    .act-crowd {
+    .act-marks {
       position: absolute;
       top: 8px;
       right: 10px;
-      font-size: 0.85rem;
-      line-height: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
       pointer-events: none;
+      line-height: 1;
+    }
+    .act-crowd { font-size: 0.85rem; }
+    .act-price {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.92);
     }
     .act-note {
       display: block;
@@ -618,26 +627,31 @@
       },
       "pkmn-cafe": {
         crowd: "mid",
+        pricey: true,
         query: "Pokémon Cafe Tokyo Nihonbashi reservation",
         blurb: "Café officiel à Nihonbashi, menu et déco Pokémon, résa en ligne indispensable. Compter 1 h sur place. Tout novembre est mis en ligne le 1er octobre à 18h00 JST.",
       },
       shinkansen: {
         crowd: "mid",
+        pricey: true,
         query: "Shinkansen reservation oversized baggage",
         blurb: "Train intercités : Tokyo–Kyoto ~2 h 15. Réserver 1 mois avant, et surtout l’espace gros bagages si une valise dépasse 160 cm (sinon amende / soute).",
       },
       romancecar: {
         crowd: "mid",
+        pricey: true,
         query: "Romancecar Odakyu Hakone reservation",
         blurb: "Odakyu panoramique vers Hakone / le Fuji, sièges avant vitrés. ~1 h 30 depuis Shinjuku. Ouvre 1 mois avant à 10h00 JST ; viser les places « Super Seat » / observatoire.",
       },
       disney: {
         crowd: "high",
+        pricey: true,
         query: "Tokyo Disney Resort tickets 2026",
         blurb: "Disneyland ou DisneySea à Maihama (~20 min de Tokyo). Journée complète, arriver à l’ouverture. Billets datés 2 mois avant à 14h00 JST.",
       },
       teamlab: {
         crowd: "high",
+        pricey: true,
         query: "teamLab Planets Tokyo tickets",
         blurb: "Planets (Toyosu, bassins d’eau, plus immersif) ou Borderless (Azabudai). Prévoir 2–3 h et des chaussettes de rechange à Planets. Mise en vente le 1er octobre.",
       },
@@ -648,6 +662,7 @@
       },
       wagyu: {
         crowd: "mid",
+        pricey: true,
         query: "Kobe beef restaurant reservation Kyoto Tokyo",
         blurb: "Kobe est à ~1 h de Kyoto, pas sur l’axe Tokyo–Fuji–Kii : un dîner depuis Kyoto, pas une étape. Les bonnes tables (wagyu ou omakase) se réservent 3 à 6 mois avant. L’omakase se fait aussi très bien à Tokyo.",
       },
@@ -907,10 +922,17 @@
         const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
         const cards = items.map((a) => {
           const note = a.note ? `<span class="act-note">${escapeHtml(a.note)}</span>` : "";
-          const crowd = CROWD[DETAILS[a.id]?.crowd];
-          const badge = crowd
-            ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
-            : "";
+          const extra = DETAILS[a.id];
+          const crowd = CROWD[extra?.crowd];
+          const marks = [
+            crowd
+              ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
+              : "",
+            extra?.pricey
+              ? '<span class="act-price" title="Activité chère" aria-label="Activité chère">€</span>'
+              : "",
+          ].join("");
+          const badge = marks ? `<span class="act-marks">${marks}</span>` : "";
           return `<button type="button" class="act" data-assign="${a.id}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
         }).join("");
         return `<section class="cat-block"><h3>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h3>${cards}</section>`;
