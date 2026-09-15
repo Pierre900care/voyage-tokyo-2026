@@ -225,12 +225,8 @@
       pointer-events: none;
       line-height: 1;
     }
-    .act-crowd { font-size: 0.85rem; }
-    .act-price {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.92);
-    }
+    .act-crowd,
+    .act-price { font-size: 0.85rem; }
     .act-note {
       display: block;
       margin-top: 4px;
@@ -929,7 +925,7 @@
               ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
               : "",
             extra?.pricey
-              ? '<span class="act-price" title="Activité chère" aria-label="Activité chère">€</span>'
+              ? '<span class="act-price" title="Activité chère" aria-label="Activité chère">💶</span>'
               : "",
           ].join("");
           const badge = marks ? `<span class="act-marks">${marks}</span>` : "";
