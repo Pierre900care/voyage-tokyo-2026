@@ -239,19 +239,28 @@
       color: var(--accent);
       margin: -6px 0 14px;
     }
+    .place-block { margin-bottom: 28px; }
+    .place-block > h3 {
+      font-size: 1.15rem;
+      font-weight: 750;
+      margin: 0 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--accent);
+    }
     .cat-block {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
-    .cat-block h3 {
+    .place-block .cat-block:last-child { margin-bottom: 0; }
+    .cat-block h4 {
       font-size: 0.88rem;
       font-weight: 650;
       margin: 0;
       color: var(--ink);
     }
-    .cat-block h3 span {
+    .cat-block h4 span {
       display: block;
       font-size: 0.75rem;
       font-weight: 400;
@@ -810,6 +819,54 @@
       { id: "shopping", emoji: "🛍️", label: "Shopping", hint: "" },
     ];
 
+    const PLACES = [
+      { id: "tokyo", label: "Tokyo" },
+      { id: "fuji", label: "Fuji / Hakone" },
+      { id: "kyoto", label: "Kyoto" },
+      { id: "kii", label: "Péninsule de Kii" },
+      { id: "trajets", label: "Trajets" },
+      { id: "autre", label: "Autre" },
+    ];
+
+    const PLACE_BY_ID = {
+      ghibli: "tokyo",
+      "shibuya-sky": "tokyo",
+      "pkmn-cafe": "tokyo",
+      disney: "tokyo",
+      teamlab: "tokyo",
+      toyosu: "tokyo",
+      tori: "tokyo",
+      sensoji: "tokyo",
+      badminton: "tokyo",
+      "photo-shops": "tokyo",
+      romancecar: "fuji",
+      wagyu: "kyoto",
+      mousses: "kyoto",
+      eikando: "kyoto",
+      fushimi: "kyoto",
+      arashiyama: "kyoto",
+      kiyomizu: "kyoto",
+      koyasan: "kii",
+      shirahama: "kii",
+      yunomine: "kii",
+      kawayu: "kii",
+      dorokyo: "kii",
+      "katsuura-thon": "kii",
+      ryujin: "kii",
+      nachi: "kii",
+      hongu: "kii",
+      ise: "kii",
+      "kodo-nakahechi": "kii",
+      hayatama: "kii",
+      hashigui: "kii",
+      shionomisaki: "kii",
+      totsukawa: "kii",
+      "kodo-ogumotori": "kii",
+      umikongo: "kii",
+      oji: "kii",
+      shinkansen: "trajets",
+    };
+
     const dayFmt = new Intl.DateTimeFormat("fr-FR", {
       weekday: "short",
       day: "numeric",
@@ -1004,27 +1061,37 @@
         box.innerHTML = '<p class="empty">Aucune proposition. Appuie sur + pour en ajouter une.</p>';
         return;
       }
-      box.innerHTML = CATEGORIES.map((cat) => {
-        const items = list.filter((a) => a.category === cat.id);
-        if (!items.length) return "";
-        const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
-        const cards = items.map((a) => {
-          const note = a.note ? `<span class="act-note">${escapeHtml(a.note)}</span>` : "";
-          const extra = DETAILS[a.id];
-          const crowd = CROWD[extra?.crowd];
-          const marks = [
-            crowd
-              ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
-              : "",
-            extra?.pricey
-              ? '<span class="act-price" title="Activité chère" aria-label="Activité chère">💶</span>'
-              : "",
-          ].join("");
-          const badge = marks ? `<span class="act-marks">${marks}</span>` : "";
-          return `<button type="button" class="act" data-assign="${a.id}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
+      box.innerHTML = PLACES.map((place) => {
+        const here = list.filter((a) => placeOf(a) === place.id);
+        if (!here.length) return "";
+        const cats = CATEGORIES.map((cat) => {
+          const items = here.filter((a) => a.category === cat.id);
+          if (!items.length) return "";
+          const hint = cat.hint ? `<span>${escapeHtml(cat.hint)}</span>` : "";
+          return `<section class="cat-block"><h4>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h4>${items.map(actCard).join("")}</section>`;
         }).join("");
-        return `<section class="cat-block"><h3>${cat.emoji} ${escapeHtml(cat.label)}${hint}</h3>${cards}</section>`;
+        return `<section class="place-block"><h3>${escapeHtml(place.label)}</h3>${cats}</section>`;
       }).join("");
+    }
+
+    function placeOf(act) {
+      return PLACE_BY_ID[act.id] || act.place || "autre";
+    }
+
+    function actCard(a) {
+      const note = a.note ? `<span class="act-note">${escapeHtml(a.note)}</span>` : "";
+      const extra = DETAILS[a.id];
+      const crowd = CROWD[extra?.crowd];
+      const marks = [
+        crowd
+          ? `<span class="act-crowd" title="${crowd.label}" aria-label="${crowd.label}">${crowd.emoji}</span>`
+          : "",
+        extra?.pricey
+          ? '<span class="act-price" title="Activité chère" aria-label="Activité chère">💶</span>'
+          : "",
+      ].join("");
+      const badge = marks ? `<span class="act-marks">${marks}</span>` : "";
+      return `<button type="button" class="act" data-assign="${a.id}">${badge}<strong>${escapeHtml(a.title)}</strong>${note}</button>`;
     }
 
     function renderSlot(date, part, label) {
@@ -1160,6 +1227,11 @@
     }
 
     function openAdd() {
+      const places = PLACES.map((p, i) => `
+        <label class="cat-pick">
+          <input type="radio" name="place" value="${p.id}" ${i === 0 ? "checked" : ""} required />
+          <span>${escapeHtml(p.label)}</span>
+        </label>`).join("");
       const cats = CATEGORIES.map((c, i) => `
         <label class="cat-pick">
           <input type="radio" name="category" value="${c.id}" ${i === 0 ? "checked" : ""} required />
@@ -1169,6 +1241,8 @@
         <h3>Nouvelle activité</h3>
         <form id="add-form">
           <input type="text" name="title" placeholder="Ex. Temple Sensō-ji" maxlength="120" required />
+          <p class="hint">Où ?</p>
+          ${places}
           <p class="hint">Dans quelle catégorie ?</p>
           ${cats}
           <button class="btn primary" type="submit">Ajouter à la liste</button>
@@ -1178,10 +1252,12 @@
       input.focus();
       document.getElementById("add-form").addEventListener("submit", (e) => {
         e.preventDefault();
+        const data = new FormData(e.target);
         const title = input.value.trim();
-        const category = (new FormData(e.target)).get("category");
-        if (!title || !category) return;
-        activities.push({ id: uid(), title, note: "", category, slot: null, locked: false, docs: [] });
+        const place = data.get("place");
+        const category = data.get("category");
+        if (!title || !place || !category) return;
+        activities.push({ id: uid(), title, note: "", place, category, slot: null, locked: false, docs: [] });
         closeDrawer();
         touch();
       });
