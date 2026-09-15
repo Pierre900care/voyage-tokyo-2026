@@ -377,6 +377,7 @@
       cursor: pointer;
     }
     .btn.primary { background: var(--accent); color: #fff; }
+    .btn.blue { background: #8acaff; color: var(--ink); }
     .btn.soft { background: #F8DDE0; color: var(--accent); margin-top: 8px; }
     .btn.ghost { background: transparent; color: var(--muted); }
     .btn.danger { background: #F4D6D6; color: var(--danger); margin-top: 8px; }
@@ -1282,9 +1283,9 @@
       openDrawer(`
         <h3>${escapeHtml(act.title)}</h3>
         ${detailHtml(act)}
-        <button class="btn primary" type="button" id="to-slots">Ajouter au planning</button>
+        <button class="btn blue" type="button" id="to-slots">Ajouter au planning</button>
         ${docsHtml(act, "soft")}
-        <button class="btn danger" type="button" id="delete">Supprimer de la liste</button>`);
+        <button class="btn primary" type="button" id="delete">Supprimer de la liste</button>`);
       document.getElementById("to-slots").addEventListener("click", () => openSlotPicker(id));
       wireDocs(id, () => openAssign(id));
       document.getElementById("delete").addEventListener("click", () => {
