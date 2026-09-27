@@ -383,9 +383,13 @@
       margin: 0 0 10px;
       font-size: 0.92rem;
     }
-    .g-link {
-      display: inline-block;
+    .act-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       margin: 0 0 16px;
+    }
+    .g-link {
       color: var(--accent);
       font-size: 0.9rem;
     }
@@ -1276,9 +1280,13 @@
         : (act.note || "Pas encore de fiche. Le lien Google ci-dessous aide à préparer.");
       const q = extra && extra.query ? extra.query : `${act.title} Japon`;
       const href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+      const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
       return `
         <p class="act-blurb">${escapeHtml(text)}</p>
-        <a class="g-link" href="${href}" target="_blank" rel="noopener">Rechercher sur Google</a>`;
+        <p class="act-links">
+          <a class="g-link" href="${href}" target="_blank" rel="noopener">Rechercher sur Google</a>
+          <a class="g-link" href="${maps}" target="_blank" rel="noopener">Ouvrir dans Maps</a>
+        </p>`;
     }
 
     function openAssign(id) {
