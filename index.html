@@ -411,6 +411,14 @@
       color: var(--accent);
       font-size: 0.9rem;
     }
+    button.g-link {
+      appearance: none;
+      border: 0;
+      background: none;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+    }
     .act-sheet { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 
     .pick-day { margin-bottom: 10px; }
@@ -1352,9 +1360,7 @@
 
     function detailHtml(act) {
       const extra = DETAILS[act.id];
-      const text = extra && extra.blurb
-        ? extra.blurb
-        : (act.note || "Pas encore de fiche. Le lien Google ci-dessous aide à préparer.");
+      const text = act.note || (extra && extra.blurb) || "Pas encore de fiche. Le lien Google ci-dessous aide à préparer.";
       const q = extra && extra.query ? extra.query : `${act.title} Japon`;
       const mapsQ = extra && extra.maps ? extra.maps : `${act.title} Japon`;
       const href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
@@ -1364,7 +1370,37 @@
         <p class="act-links">
           <a class="g-link" href="${href}" target="_blank" rel="noopener">Rechercher sur Google</a>
           <a class="g-link" href="${maps}" target="_blank" rel="noopener">Ouvrir dans Maps</a>
+          <button type="button" class="g-link" id="edit-note">Modifier la description</button>
         </p>`;
+    }
+
+    function wireEditNote(id, reopen) {
+      const btn = document.getElementById("edit-note");
+      if (btn) btn.addEventListener("click", () => openEditNote(id, reopen));
+    }
+
+    function openEditNote(id, reopen) {
+      const act = activities.find((a) => a.id === id);
+      if (!act) return;
+      const extra = DETAILS[act.id];
+      const current = act.note || (extra && extra.blurb) || "";
+      openDrawer(`
+        <h3>${escapeHtml(act.title)}</h3>
+        <form id="note-form">
+          <textarea name="note" maxlength="500" placeholder="Description, infos pratiques…">${escapeHtml(current)}</textarea>
+          <button class="btn primary" type="submit">Enregistrer</button>
+          <button class="btn ghost" type="button" id="cancel">Annuler</button>
+        </form>`);
+      const ta = document.querySelector("#note-form [name=note]");
+      ta.focus();
+      document.getElementById("note-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const found = activities.find((a) => a.id === id);
+        if (found) found.note = ta.value.trim();
+        touch();
+        reopen();
+      });
+      document.getElementById("cancel").addEventListener("click", reopen);
     }
 
     function openAssign(id) {
@@ -1378,6 +1414,7 @@
         <button class="btn primary" type="button" id="delete">Supprimer de la liste</button>`);
       document.getElementById("to-slots").addEventListener("click", () => openSlotPicker(id));
       wireDocs(id, () => openAssign(id));
+      wireEditNote(id, () => openAssign(id));
       document.getElementById("delete").addEventListener("click", () => {
         const gone = activities.find((a) => a.id === id);
         activities = activities.filter((a) => a.id !== id);
@@ -1445,6 +1482,7 @@
         <button class="btn danger" type="button" id="remove">Enlever du planning</button>
         <div class="act-sheet">${detailHtml(act)}</div>`);
       wireDocs(id, () => openPlaced(id));
+      wireEditNote(id, () => openPlaced(id));
       document.getElementById("remove").addEventListener("click", () => {
         const current = activities.find((a) => a.id === id);
         if (current) current.slot = null;
