@@ -349,7 +349,8 @@
     }
     .drawer p.hint { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
 
-    input[type="text"] {
+    input[type="text"],
+    textarea {
       width: 100%;
       font: inherit;
       font-size: 1rem;
@@ -358,6 +359,10 @@
       border-radius: 12px;
       background: #fff;
       margin-bottom: 12px;
+    }
+    textarea {
+      min-height: 96px;
+      resize: vertical;
     }
 
     .btn {
@@ -1286,6 +1291,7 @@
         <h3>Nouvelle activité</h3>
         <form id="add-form">
           <input type="text" name="title" placeholder="Ex. Temple Sensō-ji" maxlength="120" required />
+          <textarea name="note" placeholder="Description, infos pratiques…" maxlength="500"></textarea>
           <p class="hint">Où ?</p>
           ${places}
           <p class="hint">Dans quelle catégorie ?</p>
@@ -1299,10 +1305,11 @@
         e.preventDefault();
         const data = new FormData(e.target);
         const title = input.value.trim();
+        const note = String(data.get("note") || "").trim();
         const place = data.get("place");
         const category = data.get("category");
         if (!title || !place || !category) return;
-        activities.push({ id: uid(), title, note: "", place, category, slot: null, locked: false, docs: [] });
+        activities.push({ id: uid(), title, note, place, category, slot: null, locked: false, docs: [] });
         closeDrawer();
         touch();
       });
