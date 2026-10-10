@@ -1113,10 +1113,25 @@
         activities.push(hotel);
       }
       const label = dayFmt.format(new Date(date + "T12:00:00"));
+      const maps = hotel.maps
+        ? `<p class="act-links"><a class="g-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel.maps)}" target="_blank" rel="noopener">Ouvrir dans Maps</a></p>`
+        : "";
       openDrawer(`
         <h3>Hôtel · ${escapeHtml(label)}</h3>
+        <form id="hotel-form">
+          <input type="text" name="maps" placeholder="Nom ou adresse de l’hôtel" maxlength="160" value="${escapeHtml(hotel.maps || "")}" />
+          <button class="btn soft" type="submit">Enregistrer l’adresse</button>
+        </form>
+        ${maps}
         <p class="hint">La résa de l’hôtel pour cette nuit (PDF ou image).</p>
         ${docsHtml(hotel, "soft")}`);
+      document.getElementById("hotel-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const found = findHotel(date);
+        if (found) found.maps = e.target.elements.maps.value.trim();
+        touch();
+        openHotel(date);
+      });
       wireDocs(hotel.id, () => openHotel(date));
     }
 
