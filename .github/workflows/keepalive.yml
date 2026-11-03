@@ -1,0 +1,23 @@
+name: Keepalive Supabase
+
+on:
+  schedule:
+    - cron: "0 8 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Tokyo 2026
+        env:
+          URL: https://lvisxqcwjblrmuxrnhfg.supabase.co
+          KEY: sb_publishable_lb5tHPwcfbs2_nRVR93Lrw_Raonh8rK
+        run: |
+          code=$(curl -sS --max-time 30 -o /tmp/keepalive.json -w "%{http_code}" \
+            "$URL/rest/v1/trip_state?id=eq.tokyo-2026&select=id,updated_at" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY")
+          echo "HTTP $code"
+          cat /tmp/keepalive.json
+          test "$code" = "200"
